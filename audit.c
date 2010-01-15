@@ -204,6 +204,8 @@ mapalloc(unsigned size)
 {
 	void *res;
 
+	size = (size + 15) & ~15;
+
 	if (mapalloc_current_region_bytes_left < size) {
 		mapalloc_current_region = mmap(NULL, MAPALLOC_REGION_SIZE,
 					       PROT_READ|PROT_WRITE|PROT_EXEC,
