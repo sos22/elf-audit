@@ -193,12 +193,27 @@ la_objopen(struct link_map *map, Lmid_t lmid, uintptr_t *cookie)
 	return LA_FLG_BINDTO|LA_FLG_BINDFROM;
 }
 
+#define MAPALLOC_REGION_SIZE (4*PAGE_SIZE)
+static void *
+mapalloc_current_region;
+static unsigned
+mapalloc_current_region_bytes_left;
+
 static void *
 mapalloc(unsigned size)
 {
-	size = (size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
-	return mmap(NULL, size, PROT_READ|PROT_WRITE|PROT_EXEC,
-		    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+	void *res;
+
+	if (mapalloc_current_region_bytes_left < size) {
+		mapalloc_current_region = mmap(NULL, MAPALLOC_REGION_SIZE,
+					       PROT_READ|PROT_WRITE|PROT_EXEC,
+					       MAP_PRIVATE|MAP_ANONYMOUS,
+					       -1, 0);
+		mapalloc_current_region_bytes_left = MAPALLOC_REGION_SIZE;
+	}
+	res = mapalloc_current_region;
+	mapalloc_current_region += size;
+	return res;
 }
 
 extern unsigned char trampoline_1_start, trampoline_1_end,
