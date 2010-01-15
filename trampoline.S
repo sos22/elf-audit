@@ -184,8 +184,8 @@ call_post_func:
 	pushq %rcx
 	pushq %rsi
 
-	pushq %rax
 	pushq %rdx
+	pushq %rax
 	movq %rsp, %rsi /* Second argument -> return value */
 	
 	pushq %r11
@@ -194,8 +194,8 @@ call_post_func:
 
 	popq %r11
 	
-	popq %rdx
 	popq %rax
+	popq %rdx
 	popq %rsi
 	popq %rcx
 	popq %r8

@@ -157,6 +157,13 @@ putstr(const char *msg)
 }
 
 static void
+put_n_strs(unsigned n, const char *str)
+{
+	while (n--)
+		putstr(str);
+}
+
+static void
 putint(unsigned long x)
 {
 	char m[32];
@@ -244,13 +251,6 @@ allocate_trampoline(const char *symname, const void *addr)
 	*(unsigned long *)(buf + TRAMPOLINE_1_OFFSET(load_find_second_stage) + 2) =
 		(unsigned long)&find_second_stage;
 
-	putstr("allocate trampoline at ");
-	putint((unsigned long)buf);
-	putstr(" for " );
-	putstr(symname);
-	putstr("@");
-	putint((unsigned long)addr);
-	putstr("\n");
 	return buf;
 }
 
@@ -265,25 +265,50 @@ la_symbind64(Elf64_Sym *sym, unsigned idx, uintptr_t *refcook,
 	return (uintptr_t)allocate_trampoline(symname, (void *)sym->st_value);
 }
 
+static int call_depth;
+
 int
 pre_func_audit(const char *name, unsigned long *args, unsigned long *res)
 {
-	putstr("pre_func_audit ");
+	put_n_strs(call_depth, "    ");
 	putstr(name);
-	putstr("\n");
+	putstr("(");
+	if (!strcmp(name, "__asprintf_chk")) {
+		putint(args[0]);
+		putstr(", ");
+		putint(args[1]);
+		putstr(", ");
+		putstr(args[2]);
+	} else if (!strcmp(name, "realloc")) {
+		putint(args[0]);
+		putstr(", ");
+		putint(args[1]);
+	} else if (!strcmp(name, "fopen64")) {
+		putstr((const char *)args[0]);
+		putstr(", ");
+		putstr((const char *)args[1]);
+	} else if (!strcmp(name, "malloc") ||
+		   !strcmp(name, "free")) {
+		putint(args[0]);
+	} else if (!strcmp(name, "getenv")) {
+		putstr(args[0]);
+	}
+	putstr(");\n");
+	call_depth++;
 	return 0;
 }
 
 void
 post_func_audit(const char *name, unsigned long *rv)
 {
-	putstr("post_func_audit ");
-	putstr(name);
+	put_n_strs(call_depth, "    ");
 	putstr(" -> ");
-	putint(rv[0]);
-	putstr(" ");
-	putint(rv[1]);
+	if (!strcmp(name, "free"))
+		putstr("<void>");
+	else
+		putint(rv[0]);
 	putstr("\n");
+	call_depth--;
 }
 
 struct second_stage_trampoline {
