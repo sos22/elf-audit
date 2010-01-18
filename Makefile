@@ -1,3 +1,12 @@
+all: libaudit.a audit.h test_audit.so
+
+install: libaudit.a audit.h
+	install audit.h /usr/local/include
+	install libaudit.a /usr/local/lib
+
+clean:
+	rm -f *.a *.o *.so
+
 test_audit.so: libaudit.a test_audit.o
 	gcc -fPIC -nostdlib -shared -o test_audit.so libaudit.a test_audit.o -Wl,-u -Wl,la_version
 
