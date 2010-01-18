@@ -7,6 +7,12 @@
 static int call_depth;
 
 int
+audit_this_function(const char *name)
+{
+	return 1;
+}
+
+int
 pre_func_audit(const char *name, unsigned long *args, unsigned long *res)
 {
 	put_n_strs(call_depth, "    ");

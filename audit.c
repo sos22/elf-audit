@@ -80,7 +80,10 @@ la_symbind64(Elf64_Sym *sym, unsigned idx, uintptr_t *refcook,
 	if (ELF64_ST_TYPE(sym->st_info) != STT_FUNC)
 		return sym->st_value;
 
-	return (uintptr_t)allocate_trampoline(symname, (void *)sym->st_value);
+	if (audit_this_function(symname))
+		return (uintptr_t)allocate_trampoline(symname, (void *)sym->st_value);
+	else
+		return sym->st_value;
 }
 
 struct second_stage_trampoline {

@@ -51,8 +51,24 @@ void put_n_strs(unsigned n, const char *str);
 void putint(unsigned long x);
 
 /* Stuff which the audit client has to export. */
-int pre_func_audit(const char *name, unsigned long *args, unsigned long *res);
-void post_func_audit(const char *name, unsigned long *rv);
 
+/* Return 1 if you want to look at this function, and 0 otherwise. */
+int audit_this_function(const char *name);
+
+/* Called before the client calls a particular function, if
+   audit_this_function() returned 1 for the function.  @args is the
+   arguments to the function (we can't tell how many there are).
+   Return 0 to run the function, or 1 to block it.  If 1 is returned
+   by pre_func_audit, the library call returns *res (which can be up
+   to 128 bits; we don't support modifying return values larger than
+   that).  If 1 is returned by pre_func_audit, post_func_audit isn't
+   called. */
+int pre_func_audit(const char *name, unsigned long *args, unsigned long *res);
+
+/* Called after a library call for which pre_func_audit() returned 0,
+   provided the library call returns (so it won't get called if you
+   e.g. longjmp out).  rv points at the return value, which might be
+   up to 128 bits, and can be used to modify it. */
+void post_func_audit(const char *name, unsigned long *rv);
 
 #endif /* !AUDIT_H__ */
