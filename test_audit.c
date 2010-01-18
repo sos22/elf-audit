@@ -1,7 +1,3 @@
-#include <asm/unistd.h>
-#include <link.h>
-#include <stddef.h>
-
 #include "audit.h"
 
 static int call_depth;

@@ -1,6 +1,8 @@
 #ifndef AUDIT_H__
 #define AUDIT_H__
 
+#include <sys/types.h>
+
 #define PAGE_SIZE 4096
 
 #define SEEK_SET 0
