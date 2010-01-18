@@ -225,8 +225,8 @@ call_post_func:
 
 skip_call:
 	/* Set up the return value */
-	popq %rdx
 	popq %rax
+	popq %rdx
 	
 	/* Discard target name and target rip */
 	addq $16, %rsp
