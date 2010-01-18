@@ -1,0 +1,78 @@
+Some simple libraries to make using the RTLD ELF auditing interfaces a
+bit easier.  Look in test_audit.c for an example.  Build it, and then
+load it like this:
+
+LD_AUDIT=/local/scratch/sos22/elf-audit/test_audit.so /bin/ls
+
+changing the path in the obvious way.  You should see a load
+of output like this:
+
+_dl_get_tls_static_info();
+     -> 10
+getrlimit();
+     -> 0
+__sysconf();
+     -> 1000
+__libc_dl_error_tsd();
+     -> 7f5cc157f678
+__libc_pthread_init();
+     -> 7f5cc0b2b048
+fopen64(/etc/selinux/config, r);
+    malloc(238);
+         -> 953220
+    free(953220);
+         -> <void>
+     -> 0
+malloc(9);
+     -> 953220
+__asprintf_chk(7f5cc0f4f4c8, 1, %s%s);
+    malloc(64);
+         -> 953240
+    malloc(16);
+         -> 9532b0
+    free(953240);
+         -> <void>
+     -> 15
+__asprintf_chk(7f5cc0f4f4e0, 1, %s%s);
+    malloc(64);
+         -> 953240
+    malloc(24);
+         -> 9532d0
+    free(953240);
+         -> <void>
+     -> 23
+
+...
+    fwrite_unlocked();
+         -> c
+    __errno_location();
+         -> 7f5cc157f628
+    __ctype_get_mb_cur_max();
+         -> 6
+    fwrite_unlocked();
+         -> c
+    __errno_location();
+         -> 7f5cc157f628
+    __ctype_get_mb_cur_max();
+         -> 6
+    fwrite_unlocked();
+         -> 6
+    free(961740);
+         -> <void>
+    free(0);
+         -> <void>
+    free(95cb40);
+         -> <void>
+    exit();
+        __fpending();
+             -> 93
+        fclose();
+
+showing all the library calls made by the application.  I'm lazy, so
+the test module only decodes arguments for a very small set of
+functions, and doesn't do that particularly well.
+
+
+This depends on a fairly recent glibc.  2.7 is definitely new enough,
+2.3 definitely isn't, and I'm not sure about any of the ones in
+between.
