@@ -18,35 +18,6 @@ la_objopen(struct link_map *map, Lmid_t lmid, uintptr_t *cookie)
 	return LA_FLG_BINDTO|LA_FLG_BINDFROM;
 }
 
-#define MAPALLOC_REGION_SIZE (4*PAGE_SIZE)
-static struct audit_lock
-mapalloc_lock;
-static void *
-mapalloc_current_region;
-static unsigned
-mapalloc_current_region_bytes_left;
-
-static void *
-mapalloc(unsigned size)
-{
-	void *res;
-
-	size = (size + 15) & ~15;
-
-	acquire_lock(&mapalloc_lock);
-	if (mapalloc_current_region_bytes_left < size) {
-		mapalloc_current_region = mmap(NULL, MAPALLOC_REGION_SIZE,
-					       PROT_READ|PROT_WRITE|PROT_EXEC,
-					       MAP_PRIVATE|MAP_ANONYMOUS,
-					       -1, 0);
-		mapalloc_current_region_bytes_left = MAPALLOC_REGION_SIZE;
-	}
-	res = mapalloc_current_region;
-	mapalloc_current_region += size;
-	release_lock(&mapalloc_lock);
-	return res;
-}
-
 extern unsigned char trampoline_1_start, trampoline_1_end,
 	trampoline_1_load_target, trampoline_1_load_name,
 	trampoline_1_load_find_second_stage;
@@ -63,7 +34,7 @@ allocate_trampoline(const char *symname, const void *addr)
 	void *buf;
 	const unsigned symname_size = strlen(symname) + 1;
 
-	buf = mapalloc(TRAMPOLINE_1_SIZE + symname_size);
+	buf = malloc(TRAMPOLINE_1_SIZE + symname_size);
 	memcpy(buf, &trampoline_1_start, TRAMPOLINE_1_SIZE);
 	memcpy(buf + TRAMPOLINE_1_SIZE, symname, symname_size);
 	*(unsigned long *)(buf + TRAMPOLINE_1_OFFSET(load_target) + 2) =
@@ -130,7 +101,7 @@ build_sst(unsigned long target_rip, unsigned long return_rip, const char *name)
 	void *buf;
 	unsigned name_size = strlen(name) + 1;
 
-	sst = mapalloc(name_size + TRAMPOLINE_2_SIZE + sizeof(*sst));
+	sst = malloc(name_size + TRAMPOLINE_2_SIZE + sizeof(*sst));
 	buf = sst->body;
 	memcpy(buf, &trampoline_2_start, TRAMPOLINE_2_SIZE);
 	*(unsigned long *)(buf + TRAMPOLINE_2_OFFSET(loads_target_name) + 2) =
