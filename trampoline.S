@@ -13,6 +13,21 @@
 .global trampoline_2_loads_return_rip
 .global trampoline_2_end
 	
+#define VG_ESCAPE(x) $(0x45410000 | (x))
+#define VALGRIND_ESCAPE_ENTER_MONITOR VG_ESCAPE(0)
+#define VALGRIND_ESCAPE_EXIT_MONITOR VG_ESCAPE(1)
+	
+.macro VALGRIND_ESCAPE code
+	pushq \code
+	movq %rsp, %rax
+	rolq $3, %rdi
+	rolq $13, %rdi
+	rolq $61, %rdi
+	rolq $51, %rdi
+	xchgq %rbx, %rbx
+	addq $8, %rsp
+.endm
+	
 	/* The first phase trampoline is just responsible for finding
 	or allocating the second phase. */
 trampoline_1_start:
@@ -49,6 +64,7 @@ find_second_stage:
 
 	with the return address in rdx. */
 	pushq %rdx
+
 	/* Stack now:
 	Caller's rdx		(%rsp)
 	Caller's rcx		8(%rsp)
@@ -114,6 +130,8 @@ find_second_stage:
 	pushq %r9
 	pushq %r8
 
+	VALGRIND_ESCAPE VALGRIND_ESCAPE_ENTER_MONITOR
+
 	/* (%rsp) -> target name, 8(%rsp) -> target rip, 16(%rsp) -> return rip */
 	
 	movq 8(%rsp), %rcx
@@ -151,6 +169,8 @@ find_second_stage:
 	movq 56(%rsp), %r8
 	movq %rdi, 56(%rsp)
 
+	VALGRIND_ESCAPE VALGRIND_ESCAPE_EXIT_MONITOR
+	
 	/* Phase 2: Restore all other registers */
 	popq %r11
 	popq %r10
@@ -189,11 +209,15 @@ call_post_func:
 	pushq %rax
 	movq %rsp, %rsi /* Second argument -> return value */
 	
+	VALGRIND_ESCAPE VALGRIND_ESCAPE_ENTER_MONITOR
+	
 	pushq %r11
 	
 	call post_func_audit@PLT
 
 	popq %r11
+	
+	VALGRIND_ESCAPE VALGRIND_ESCAPE_EXIT_MONITOR
 	
 	popq %rax
 	popq %rdx
@@ -240,6 +264,8 @@ skip_call:
 	popq %r8
 	movq %r8, 64(%rsp)
 
+	VALGRIND_ESCAPE VALGRIND_ESCAPE_EXIT_MONITOR
+	
 	/* Restore all other registers */
 	popq %r11
 	popq %r10
