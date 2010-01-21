@@ -19,6 +19,8 @@ la_objopen(struct link_map *map, Lmid_t lmid, uintptr_t *cookie)
 }
 
 #define MAPALLOC_REGION_SIZE (4*PAGE_SIZE)
+static struct audit_lock
+mapalloc_lock;
 static void *
 mapalloc_current_region;
 static unsigned
@@ -31,6 +33,7 @@ mapalloc(unsigned size)
 
 	size = (size + 15) & ~15;
 
+	acquire_lock(&mapalloc_lock);
 	if (mapalloc_current_region_bytes_left < size) {
 		mapalloc_current_region = mmap(NULL, MAPALLOC_REGION_SIZE,
 					       PROT_READ|PROT_WRITE|PROT_EXEC,
@@ -40,6 +43,7 @@ mapalloc(unsigned size)
 	}
 	res = mapalloc_current_region;
 	mapalloc_current_region += size;
+	release_lock(&mapalloc_lock);
 	return res;
 }
 
@@ -103,6 +107,8 @@ sst_hash(unsigned long target, unsigned long ra)
 	return target % NR_HASH_BUCKETS;
 }
 
+static struct audit_lock
+sst_hash_lock;
 static struct second_stage_trampoline *
 sst_hash_tab[NR_HASH_BUCKETS];
 
@@ -145,6 +151,7 @@ find_second_stage_trampoline(unsigned long target, unsigned long ra,
 {
 	struct second_stage_trampoline **pprev, *cursor, **head;
 
+	acquire_lock(&sst_hash_lock);
 	head = pprev = &sst_hash_tab[sst_hash(target, ra)];
 	cursor = *pprev;
 	while (cursor) {
@@ -160,5 +167,7 @@ find_second_stage_trampoline(unsigned long target, unsigned long ra,
 	*pprev = cursor->next;
 	cursor->next = *head;
 	*head = cursor;
+	release_lock(&sst_hash_lock);
+
 	return cursor->body;
 }

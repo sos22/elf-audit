@@ -33,6 +33,15 @@ memcpy(void *dest, const void *src, size_t size)
 	return dest;
 }
 
+void *
+memset(void *buf, int c, size_t n)
+{
+	unsigned x;
+	for (x = 0; x < n; x++)
+		((unsigned char *)buf)[x] = (unsigned char)c;
+	return buf;
+}
+
 static inline long
 syscall(int sysnr, unsigned long arg0, unsigned long arg1, unsigned long arg2,
 	unsigned long arg3, unsigned long arg4, unsigned long arg5)
@@ -176,3 +185,81 @@ putint(unsigned long x)
 	putstr(ptr);
 }
 
+
+void
+init_lock(struct audit_lock *al)
+{
+	memset(al, 0, sizeof(*al));
+}
+
+static inline int
+cmpxchg(int *val, int from, int to)
+{
+	int res;
+	asm volatile ("lock cmpxchg %2, %3"
+		      : "=a" (res)
+		      : "0" (from), "r" (to), "m" (*val)
+		      : "memory", "cc");
+	return res;
+}
+
+static inline void
+atomic_inc(int *val)
+{
+	asm volatile ("lock incl %0"
+		      :
+		      : "m" (*val)
+		      : "memory", "cc");
+}
+
+static inline void
+atomic_dec(int *val)
+{
+	asm volatile ("lock decl %0"
+		      :
+		      : "m" (*val)
+		      : "memory", "cc");
+}
+
+static inline void
+rmb(void)
+{
+	asm volatile ("" ::: "memory");
+}
+
+void
+acquire_lock(struct audit_lock *al)
+{
+	int old;
+	int new;
+
+top:
+	old = al->locked;
+
+	/* Try an uncontended acquire */
+	while (old == 0) {
+		new = cmpxchg(&al->locked, 0, 1);
+		if (new == old)
+			return;
+		old = new;
+	}
+
+	/* Failed, add ourselves to the waitlist. */
+	atomic_inc(&al->waiters);
+
+	/* Go to sleep. */
+	syscall4(__NR_futex, (unsigned long)&al->locked, FUTEX_WAIT, 1, 0);
+
+	/* Try it again. */
+	atomic_dec(&al->waiters);
+	goto top;
+}
+
+void
+release_lock(struct audit_lock *al)
+{
+	al->locked = 0;
+	rmb();
+	if (al->waiters)
+		syscall3(__NR_futex, (unsigned long)&al->locked, FUTEX_WAKE, 1);
+}

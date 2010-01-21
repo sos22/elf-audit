@@ -18,6 +18,9 @@
 #define MAP_FIXED 0x10
 #define MAP_ANONYMOUS 0x20
 
+#define FUTEX_WAIT              0
+#define FUTEX_WAKE              1
+
 /* Syscalls */
 long syscall0(int sysnr);
 long syscall1(int sysnr, unsigned long arg0);
@@ -43,6 +46,17 @@ int munmap(const void *base, size_t size);
 ssize_t write(int fd, const void *buf, size_t size);
 ssize_t read(int fd, void *buf, size_t size);
 off_t lseek(int fd, off_t offset, int whence);
+
+/* Synchronisation */
+/* locked is either 0 or 1, and waiters is an upper bound on the
+   number of threads which are blocked waiting for the lock. */
+struct audit_lock {
+	int locked;
+	int waiters;
+};
+void init_lock(struct audit_lock *al); /* Or just memset to zero */
+void acquire_lock(struct audit_lock *al);
+void release_lock(struct audit_lock *al);
 
 /* Other low-level bits */
 void _exit(int code);
