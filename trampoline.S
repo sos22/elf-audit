@@ -116,6 +116,7 @@ find_second_stage:
 
 	/* (%rsp) -> target name, 8(%rsp) -> target rip, 16(%rsp) -> return rip */
 	
+	movq 8(%rsp), %rcx
 	subq $16, %rsp
 	movq %rsp, %rdx
 	movq %r8, %rdi

@@ -9,7 +9,8 @@ audit_this_function(const char *name)
 }
 
 int
-pre_func_audit(const char *name, unsigned long *args, unsigned long *res)
+pre_func_audit(const char *name, unsigned long *args, unsigned long *res,
+	       unsigned long val)
 {
 	put_n_strs(call_depth, "    ");
 	putstr(name);
@@ -34,7 +35,9 @@ pre_func_audit(const char *name, unsigned long *args, unsigned long *res)
 	} else if (!strcmp(name, "getenv")) {
 		putstr((const char *)args[0]);
 	}
-	putstr(");\n");
+	putstr(") ");
+	putint(val);
+	putstr(";\n");
 	call_depth++;
 	return 0;
 }

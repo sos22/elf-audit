@@ -10,7 +10,7 @@ clean:
 test_audit.so: libaudit.a test_audit.o
 	gcc -fPIC -nostdlib -shared -o test_audit.so libaudit.a test_audit.o -Wl,-u -Wl,la_version
 
-test_audit.o: test_audit.c
+test_audit.o: test_audit.c audit.h
 	gcc -shared -c -fPIC test_audit.c -Wall
 
 libaudit.a: audit.o trampoline.o libc.o malloc.o

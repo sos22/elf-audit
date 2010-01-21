@@ -78,8 +78,10 @@ int audit_this_function(const char *name);
    by pre_func_audit, the library call returns *res (which can be up
    to 128 bits; we don't support modifying return values larger than
    that).  If 1 is returned by pre_func_audit, post_func_audit isn't
+   called.  val is a pointer to the actual function which is being
    called. */
-int pre_func_audit(const char *name, unsigned long *args, unsigned long *res);
+int pre_func_audit(const char *name, unsigned long *args, unsigned long *res,
+		   unsigned long val);
 
 /* Called after a library call for which pre_func_audit() returned 0,
    provided the library call returns (so it won't get called if you
