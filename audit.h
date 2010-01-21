@@ -18,8 +18,8 @@
 #define MAP_FIXED 0x10
 #define MAP_ANONYMOUS 0x20
 
-#define FUTEX_WAIT              0
-#define FUTEX_WAKE              1
+#define FUTEX_WAIT_PRIVATE              128
+#define FUTEX_WAKE_PRIVATE              129
 
 /* Syscalls */
 long syscall0(int sysnr);

@@ -248,7 +248,7 @@ top:
 	atomic_inc(&al->waiters);
 
 	/* Go to sleep. */
-	syscall4(__NR_futex, (unsigned long)&al->locked, FUTEX_WAIT, 1, 0);
+	syscall4(__NR_futex, (unsigned long)&al->locked, FUTEX_WAIT_PRIVATE, 1, 0);
 
 	/* Try it again. */
 	atomic_dec(&al->waiters);
@@ -261,5 +261,5 @@ release_lock(struct audit_lock *al)
 	al->locked = 0;
 	rmb();
 	if (al->waiters)
-		syscall3(__NR_futex, (unsigned long)&al->locked, FUTEX_WAKE, 1);
+		syscall3(__NR_futex, (unsigned long)&al->locked, FUTEX_WAKE_PRIVATE, 1);
 }
