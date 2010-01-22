@@ -169,6 +169,8 @@ find_second_stage:
 	movq 56(%rsp), %r8
 	movq %rdi, 56(%rsp)
 
+	movq $0, %rcx
+	movq $0, %rdx
 	VALGRIND_ESCAPE VALGRIND_ESCAPE_EXIT_MONITOR
 	
 	/* Phase 2: Restore all other registers */
@@ -217,6 +219,8 @@ call_post_func:
 
 	popq %r11
 	
+	movq $0, %rcx
+	movq $0, %rdx
 	VALGRIND_ESCAPE VALGRIND_ESCAPE_EXIT_MONITOR
 	
 	popq %rax
@@ -264,6 +268,8 @@ skip_call:
 	popq %r8
 	movq %r8, 64(%rsp)
 
+	movq $0, %rcx
+	movq $0, %rdx
 	VALGRIND_ESCAPE VALGRIND_ESCAPE_EXIT_MONITOR
 	
 	/* Restore all other registers */
