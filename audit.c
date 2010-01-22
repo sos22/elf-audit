@@ -116,6 +116,9 @@ build_sst(unsigned long target_rip, unsigned long return_rip, const char *name)
 	return sst;
 }
 
+void *find_second_stage_trampoline(unsigned long target, unsigned long ra,
+				   const char *name) HIDDEN;
+
 void *
 find_second_stage_trampoline(unsigned long target, unsigned long ra,
 			     const char *name)

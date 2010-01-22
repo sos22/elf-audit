@@ -12,7 +12,7 @@
 .global trampoline_2_loads_target_name
 .global trampoline_2_loads_return_rip
 .global trampoline_2_end
-	
+
 #define VG_ESCAPE(x) $(0x45410000 | (x))
 #define VALGRIND_ESCAPE_ENTER_MONITOR VG_ESCAPE(0)
 #define VALGRIND_ESCAPE_EXIT_MONITOR VG_ESCAPE(1)
@@ -138,9 +138,9 @@ find_second_stage:
 	subq $16, %rsp
 	movq %rsp, %rdx
 	movq %r8, %rdi
-	
-	call pre_func_audit@PLT
 
+	call pre_func_audit
+	
 	test %rax, %rax
 	jnz skip_call
 
@@ -152,7 +152,7 @@ find_second_stage:
 	popq %rdx /* Target name */
 	movq (%rsp), %rdi
 	movq 8(%rsp), %rsi
-	call find_second_stage_trampoline@PLT
+	call find_second_stage_trampoline
 	popq %rdi /* Target rip */
 	addq $8, %rsp /* Discard return rip; it's in the second stage */
 	

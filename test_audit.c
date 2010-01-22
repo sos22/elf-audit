@@ -8,6 +8,9 @@ audit_this_function(const char *name)
 	return 1;
 }
 
+int pre_func_audit(const char *name, unsigned long *args, unsigned long *res,
+		   unsigned long val) __attribute__ ((visibility ("hidden")));
+
 int
 pre_func_audit(const char *name, unsigned long *args, unsigned long *res,
 	       unsigned long val)
