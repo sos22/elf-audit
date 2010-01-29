@@ -185,6 +185,24 @@ putint(unsigned long x)
 	putstr(ptr);
 }
 
+void
+putdecint(unsigned long x)
+{
+	char m[32];
+	char *ptr = m + 31;
+	if (x == 0) {
+		putstr("0");
+		return;
+	}
+	m[31] = 0;
+	while (x) {
+		ptr--;
+		*ptr = (x % 10) + '0';
+		x /= 10;
+	}
+	putstr(ptr);
+}
+
 
 void
 init_lock(struct audit_lock *al)

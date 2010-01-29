@@ -71,6 +71,7 @@ void _exit(int code) HIDDEN;
 void putstr(const char *msg) HIDDEN;
 void put_n_strs(unsigned n, const char *str) HIDDEN;
 void putint(unsigned long x) HIDDEN;
+void putdecint(unsigned long x) HIDDEN;
 
 /* Malloc-like */
 void * malloc(size_t size) HIDDEN;
