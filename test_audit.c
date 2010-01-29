@@ -35,6 +35,11 @@ pre_func_audit(const char *name, unsigned long *args, unsigned long *res,
 	} else if (!strcmp(name, "malloc") ||
 		   !strcmp(name, "free")) {
 		putint(args[0]);
+		putstr(") -> ");
+		call_func(val, res, 1, args);
+		putint(res[0]);
+		putstr(";\n");
+		return 1;
 	} else if (!strcmp(name, "getenv")) {
 		putstr((const char *)args[0]);
 	}

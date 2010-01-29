@@ -76,6 +76,22 @@ void putint(unsigned long x) HIDDEN;
 void * malloc(size_t size) HIDDEN;
 void free(void *ptr) HIDDEN;
 
+
+/* Helper for calling arbitrary functions with arbitrary arguments.
+   @addr is the function to call, @res is a pointer to two longs which
+   contain the register return values, @nr_args is the number of
+   arguments in @args, and @args is a pointer to an array or unsigned
+   long arguments. */
+/* It is in general safe to overestimate the number of arguments to a
+   function, but not to underestimate.  Note that the AMD64 ABI limits
+   functions to at most 262 arguments; this can be used to construct
+   generic calls to any ABI-conformant function (although doing so is
+   likely to be slow and rather wasteful of stack space). */
+void call_func(unsigned long addr,
+	       unsigned long *res,
+	       unsigned nr_args,
+	       unsigned long *args) HIDDEN;
+
 /* Stuff which the audit client has to export. */
 
 /* Return 1 if you want to look at this function, and 0 otherwise. */
